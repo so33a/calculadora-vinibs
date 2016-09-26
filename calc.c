@@ -3,13 +3,18 @@
 #include <string.h>
 #define MAX 1000
 
+/* Incluir a estrutura da pilha */
+typedef struct node * link;
+struct node {
+  int item;
+  link next;
+};
+
 /* Define um novo tipo de dado chamado Pilha que é um ponteiro para "struct pilha". */
 typedef struct pilha * Pilha;
-
 struct pilha
 {
-    int valor;
-    Pilha next;
+  link topo;
 };
 
 /* Aloca espaço para armazenar uma nova Pilha */
@@ -20,40 +25,40 @@ Pilha novaPilha () {
             printf("Algum erro aconteceu !\n");
             exit(-1);
         }
-    p->next = 0; /* devemos inicializar o topo com 0 */
+    p->topo = NULL; /* devemos inicializar o topo com 0 */
     return p;
+}
+/* Operação de inserir novo elemento na pilha */
+void push (Pilha p, int valor) {
+  link t = malloc(sizeof *t);
+  t->item = valor;
+  t->next = p->topo;
+  p->topo = t;
+}
+/* Operação de remover um elemento da pilha */
+int pop (Pilha p) {
+  link t;
+  int r = 0;
+  if (p->topo != NULL) {
+    r= p->topo->item;
+    t = p->topo;
+    p->topo = p->topo->next;
+    free(t);
+  }
+  return r;
 }
 /* Libera memória de uma dada pilha p */
 void destroiPilha (Pilha p)
 {
-    while(p != NULL){
-        Pilha q = p;
-        p = p->next;
-    }
+  int x;
+  while(p->topo != NULL)
+    x = pop(p);
+  free(p);
 }
-/* Operação de inserir novo elemento na pilha */
-void push (Pilha p, int valor) {
-    Pilha q = malloc(sizeof(*q));
-    q->valor = valor;
-    
-    if(p->next == 0){
-        q->next = 0;
-    } else{
-        q->next = p;
-    }
-    p = q;
-}
-/* Operação de remover um elemento da pilha */
-int pop (Pilha p) {
-    int val = p->valor;
-    Pilha q = p;
-    p = p->next;
-    free(q);
-    return val;
-}
+
 /* Operação para pegar o elemento do topo da pilha */
 int topo (Pilha p) {
-    return p->valor;
+    return p->topo->item;
 }
 /* Transforma a notação infixa para a notação posfixa */
 int infixoParaPosfixo (char * entrada, char * saida, int n)
@@ -120,16 +125,19 @@ int infixoParaPosfixo (char * entrada, char * saida, int n)
 int bemEncaixado (char* s) {
     Pilha p = novaPilha();
     int i;
-    int resultado = 1;
     for(i = 0; s[i] != '\0'; i++) {
         if(s[i] == '(') {
             push(p, 1);
         } else if (s[i] == ')') {
-            pop(p);
+	  if (p->topo == NULL)
+	    return 0;
+	  pop(p);
         }
     }
+    if (p->topo != NULL)
+      return 0;
     destroiPilha(p);
-    return resultado;
+    return 1;
 }
 
 
